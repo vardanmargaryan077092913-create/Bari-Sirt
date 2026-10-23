@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bari Sirt (Բարի Սիրտ) — Փոխօգնության Պլատֆորմ</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Armenian:wght@400;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'Noto Sans Armenian', 'sans-serif'] },
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', 'Noto Sans Armenian', sans-serif; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col selection:bg-brand-500 selection:text-white">
+
+  <!-- Header / Navigation -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16 items-center">
+        
+        <!-- Logo -->
+        <div class="flex items-center gap-3 cursor-pointer select-none" onclick="goHome()">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-600 to-rose-500 flex items-center justify-center text-white shadow-md">
+            <i class="fa-solid fa-heart text-xl"></i>
+          </div>
+          <div>
+            <span class="text-xl font-black bg-gradient-to-r from-brand-700 via-emerald-600 to-rose-500 bg-clip-text text-transparent">Bari Sirt</span>
+            <span class="block text-[10px] text-slate-500 font-medium tracking-wider uppercase" id="sub-logo-text">Բարի Սիրտ • Փոխօգնություն</span>
+          </div>
+        </div>
+
+        <!-- Navigation items (Visible ONLY when logged in) -->
+        <nav class="hidden md:flex items-center gap-6" id="main-nav-links">
+          <button onclick="showTab('feed')" class="text-slate-600 hover:text-brand-600 font-medium transition py-2 text-sm flex items-center gap-2">
+            <i class="fa-solid fa-list-check"></i> <span data-i18n="nav_all_requests">Все просьбы</span>
+          </button>
+          <button onclick="showTab('create')" class="bg-brand-600 hover:bg-brand-700 text-white font-semibold px-4 py-2 rounded-xl transition shadow-sm flex items-center gap-2 text-sm">
+            <i class="fa-solid fa-plus-circle"></i> <span data-i18n="nav_need_help">Нужна помощь</span>
+          </button>
+        </nav>
+
+        <!-- Right Side Controls (Language + Auth State) -->
+        <div class="flex items-center gap-3">
+          <!-- Language Selector -->
+          <div class="relative bg-slate-100 p-1 rounded-xl flex items-center text-xs font-bold border border-slate-200">
+            <button onclick="changeLanguage('ru')" id="lang-ru" class="px-2.5 py-1 rounded-lg transition">RU</button>
+            <button onclick="changeLanguage('hy')" id="lang-hy" class="px-2.5 py-1 rounded-lg transition">HY</button>
+            <button onclick="changeLanguage('en')" id="lang-en" class="px-2.5 py-1 rounded-lg transition">EN</button>
+          </div>
+
+          <!-- Auth section -->
+          <div class="flex items-center gap-2" id="auth-header-section"></div>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- Notification Banner (Toast) -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full px-4 pointer-events-none"></div>
+
+  <!-- Modal Container -->
+  <div id="modal-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden flex items-center justify-center p-4">
+    <div id="modal-box" class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl transform transition-all relative max-h-[90vh] overflow-y-auto">
+      <!-- Dynamic Content -->
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- 1. LANDING PAGE TAB (FOR UNREGISTERED / GUEST USERS) -->
+    <section id="tab-landing" class="space-y-12 py-4">
+      <!-- Hero Banner -->
+      <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-brand-800 via-brand-700 to-rose-600 text-white p-8 sm:p-14 shadow-xl">
+        <div class="relative z-10 max-w-3xl">
+          <span class="inline-block bg-white/20 backdrop-blur-md px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4" data-i18n="hero_tag">Bari Sirt • Բարի Սիրտ</span>
+          <h1 class="text-3xl sm:text-5xl font-black tracking-tight mb-4 leading-tight" data-i18n="landing_hero_title">Платформа прямых добрых дел в Армении</h1>
+          <p class="text-brand-50 text-sm sm:text-base mb-8 leading-relaxed max-w-2xl" data-i18n="landing_hero_subtitle">
+            Bari Sirt — это объединение людей, которым нужна помощь, и тех, кто готов её оказать. Войдите или зарегистрируйтесь, чтобы просматривать объявления, связываться напрямую и помогать друг другу.
+          </p>
+          <div class="flex flex-wrap gap-4">
+            <button onclick="openLoginModal()" class="bg-white text-brand-800 hover:bg-brand-50 font-extrabold px-6 py-3.5 rounded-2xl transition shadow-lg text-sm flex items-center gap-2">
+              <i class="fa-solid fa-right-to-bracket"></i> <span data-i18n="login_btn">Войти</span>
+            </button>
+            <button onclick="openRegisterModal()" class="bg-slate-900 hover:bg-black text-white font-extrabold px-6 py-3.5 rounded-2xl transition shadow-lg text-sm flex items-center gap-2 border border-slate-700">
+              <i class="fa-solid fa-user-plus"></i> <span data-i18n="register_btn">Регистрация</span>
+            </button>
+          </div>
+        </div>
+        <div class="absolute -right-12 -bottom-12 opacity-10 text-[220px] select-none pointer-events-none">
+          <i class="fa-solid fa-heart"></i>
+        </div>
+      </div>
+
+      <!-- About Platform Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-3">
+          <div class="w-12 h-12 bg-brand-100 text-brand-700 rounded-2xl flex items-center justify-center text-xl font-bold">
+            <i class="fa-solid fa-hand-holding-heart"></i>
+          </div>
+          <h3 class="text-lg font-bold text-slate-800" data-i18n="feat1_title">Прямая взаимопомощь</h3>
+          <p class="text-xs text-slate-500 leading-relaxed" data-i18n="feat1_desc">
+            Публикация запросов на продукты, одежду, медикаменты, жилье или финансовую поддержку напрямую от людей.
+          </p>
+        </div>
+
+        <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-3">
+          <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center text-xl font-bold">
+            <i class="fa-solid fa-shield-check"></i>
+          </div>
+          <h3 class="text-lg font-bold text-slate-800" data-i18n="feat2_title">Модерация и Безопасность</h3>
+          <p class="text-xs text-slate-500 leading-relaxed" data-i18n="feat2_desc">
+            Каждое объявление проходит обязательную проверку администратором. Контакты и связь доступны только авторизованным людям.
+          </p>
+        </div>
+
+        <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-3">
+          <div class="w-12 h-12 bg-sky-100 text-sky-600 rounded-2xl flex items-center justify-center text-xl font-bold">
+            <i class="fa-solid fa-map-location-dot"></i>
+          </div>
+          <h3 class="text-lg font-bold text-slate-800" data-i18n="feat3_title">Все регионы Армении</h3>
+          <p class="text-xs text-slate-500 leading-relaxed" data-i18n="feat3_desc">
+            Удобный поиск по Марзам, городам и селам Армении (Ереван, Гюмри, Ванадзор, Горис, Варденис и др.).
+          </p>
+        </div>
+      </div>
+
+      <!-- Auth Prompt Banner -->
+      <div class="bg-slate-900 text-white rounded-3xl p-8 sm:p-10 text-center space-y-4">
+        <h2 class="text-2xl font-bold" data-i18n="cta_heading">Готовы стать частью сообщества?</h2>
+        <p class="text-xs text-slate-300 max-w-xl mx-auto leading-relaxed" data-i18n="cta_sub">
+          Зарегистрируйтесь за 1 минуту по электронной почте, чтобы просмотреть актуальные просьбы о помощи или подать свою заявку.
+        </p>
+        <div class="flex justify-center gap-3 pt-2">
+          <button onclick="openRegisterModal()" class="bg-brand-600 hover:bg-brand-700 text-white font-bold px-6 py-3 rounded-xl transition shadow text-sm">
+            <span data-i18n="register_btn">Регистрация</span>
+          </button>
+          <button onclick="openLoginModal()" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-6 py-3 rounded-xl transition border border-slate-700 text-sm">
+            <span data-i18n="login_btn">Войти</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. MAIN FEED TAB (ONLY FOR LOGGED-IN USERS) -->
+    <section id="tab-feed" class="hidden space-y-6">
+      <!-- Search & Filters -->
+      <div class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200 space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <!-- Search input -->
+          <div class="relative md:col-span-2">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
+            <input type="text" id="search-input" oninput="applyFilters()" placeholder="Поиск по региону, городу..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
+          </div>
+          <!-- Region filter -->
+          <div>
+            <select id="filter-region" onchange="applyFilters()" class="w-full py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm font-medium text-slate-700">
+              <option value="" data-i18n="opt_all_regions">Все регионы (Марзы)</option>
+              <option value="Ереван">Ереван / Yerevan / Երևան</option>
+              <option value="Ширак">Ширак / Shirak / Շիրակ</option>
+              <option value="Лори">Лори / Lori / Լոռի</option>
+              <option value="Гегаркуник">Гегаркуник / Gegharkunik / Գեղարքունիք</option>
+              <option value="Сюник">Сюник / Syunik / Սյունիք</option>
+              <option value="Котайк">Котайк / Kotayk / Կոտայք</option>
+              <option value="Арарат">Арарат / Ararat / Արարատ</option>
+              <option value="Армавир">Армавир / Armavir / Արմավիր</option>
+              <option value="Арагацотн">Арагацотн / Aragatsotn / Արագածոտն</option>
+              <option value="Тавуш">Тавуш / Tavush / Տավուշ</option>
+              <option value="Вайоц Дзор">Вайоц Дзор / Vayots Dzor / Վայոց Ձոր</option>
+            </select>
+          </div>
+          <!-- Category filter -->
+          <div>
+            <select id="filter-category" onchange="applyFilters()" class="w-full py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm font-medium text-slate-700">
+              <option value="" data-i18n="opt_all_categories">Все категории нужд</option>
+              <option value="Еда" data-i18n="cat_food">Продукты / Еда</option>
+              <option value="Медикаменты" data-i18n="cat_meds">Медикаменты / Лечение</option>
+              <option value="Одежда" data-i18n="cat_clothes">Одежда и обувь</option>
+              <option value="Жилье" data-i18n="cat_housing">Жилье / Кров</option>
+              <option value="Бытовая техника" data-i18n="cat_appliances">Бытовая техника / Мебель</option>
+              <option value="Образование" data-i18n="cat_edu">Образование / Для детей</option>
+              <option value="Финансы" data-i18n="cat_finance">Финансовая помощь</option>
+              <option value="Уход / Работа" data-i18n="cat_work">Уход / Поиск работы</option>
+              <option value="Другая помощь" data-i18n="cat_other">Другая помощь</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Requests Grid -->
+      <div>
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-bold text-slate-800" data-i18n="section_active_requests">Актуальные просьбы о помощи</h2>
+          <span id="posts-count" class="text-xs bg-slate-200 text-slate-700 font-bold px-3 py-1 rounded-full">0</span>
+        </div>
+
+        <div id="listings-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+        <!-- Empty State (ByDefault 0 POSTS) -->
+        <div id="no-listings" class="text-center py-16 bg-white rounded-3xl border border-dashed border-slate-300 p-8">
+          <div class="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+            <i class="fa-solid fa-heart-crack"></i>
+          </div>
+          <h3 class="text-lg font-bold text-slate-800 mb-1" data-i18n="empty_title">Пока нет опубликованных просьб</h3>
+          <p class="text-xs text-slate-500 max-w-md mx-auto mb-6" data-i18n="empty_desc">На платформе Bari Sirt пока нет проверенных активных объявлений. Вы можете стать первым.</p>
+          <button onclick="showTab('create')" class="bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow transition inline-flex items-center gap-2">
+            <i class="fa-solid fa-plus-circle"></i> <span data-i18n="empty_btn">Подать первое объявление</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. CREATE REQUEST TAB -->
+    <section id="tab-create" class="hidden max-w-2xl mx-auto space-y-6">
+      <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200">
+        <h2 class="text-2xl font-bold text-slate-800 mb-2" data-i18n="create_heading">Создать просьбу о помощи</h2>
+        <p class="text-xs text-slate-500 mb-6 leading-relaxed" data-i18n="create_subheading">Опишите подробно нужду. Объявление поступит на модерацию и появится после проверки.</p>
+
+        <form id="create-post-form" onsubmit="handleCreatePost(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1" data-i18n="lbl_title">Заголовок просьбы *</label>
+            <input type="text" id="post-title" required placeholder="..." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1" data-i18n="lbl_category">Категория *</label>
+              <select id="post-category" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <option value="Еда" data-i18n="cat_food">Продукты / Еда</option>
+                <option value="Медикаменты" data-i18n="cat_meds">Медикаменты / Лечение</option>
+                <option value="Одежда" data-i18n="cat_clothes">Одежда и обувь</option>
+                <option value="Жилье" data-i18n="cat_housing">Жилье / Кров</option>
+                <option value="Бытовая техника" data-i18n="cat_appliances">Бытовая техника / Мебель</option>
+                <option value="Образование" data-i18n="cat_edu">Образование / Для детей</option>
+                <option value="Финансы" data-i18n="cat_finance">Финансовая помощь</option>
+                <option value="Уход / Работа" data-i18n="cat_work">Уход / Поиск работы</option>
+                <option value="Другая помощь" data-i18n="cat_other">Другая помощь</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1" data-i18n="lbl_region">Регион (Марз) *</label>
+              <select id="post-region" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <option value="Ереван">Ереван</option>
+                <option value="Ширак">Ширак</option>
+                <option value="Лори">Лори</option>
+                <option value="Гегаркуник">Гегаркуник</option>
+                <option value="Сюник">Сюник</option>
+                <option value="Котайк">Котайк</option>
+                <option value="Арарат">Арарат</option>
+                <option value="Армавир">Армавир</option>
+                <option value="Арагацотн">Арагацотн</option>
+                <option value="Тавуш">Тавуш</option>
+                <option value="Вайоц Дзор">Вайоц Дзор</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1" data-i18n="lbl_city">Город / Населенный пункт / Село *</label>
+            <input type="text" id="post-city" required placeholder="..." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1" data-i18n="lbl_phone">Контактный телефон *</label>
+            <input type="tel" id="post-phone" required placeholder="+374 XX XXXXXX" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <span class="text-[11px] text-slate-400 mt-0.5 block" data-i18n="phone_privacy_note"><i class="fa-solid fa-shield-halved text-brand-600 mr-1"></i> Телефон виден только зарегистрированным пользователям.</span>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1" data-i18n="lbl_description">Подробное описание нужды *</label>
+            <textarea id="post-description" rows="5" required placeholder="..." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"></textarea>
+          </div>
+
+          <div class="pt-4 flex gap-3">
+            <button type="submit" class="flex-1 bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-xl transition shadow-md text-sm flex items-center justify-center gap-2">
+              <i class="fa-solid fa-paper-plane"></i> <span data-i18n="btn_submit_mod">Отправить на модерацию</span>
+            </button>
+            <button type="button" onclick="showTab('feed')" class="px-5 py-3 border border-slate-300 text-slate-600 hover:bg-slate-100 font-semibold rounded-xl transition text-sm" data-i18n="btn_cancel">
+              Отмена
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- 4. USER DASHBOARD TAB -->
+    <section id="tab-dashboard" class="hidden space-y-6">
+      <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 class="text-2xl font-bold text-slate-800" id="dash-user-name">Личный Кабинет</h2>
+          <p class="text-xs text-slate-500 mt-0.5" id="dash-user-email">email@example.com</p>
+        </div>
+        <div>
+          <span class="text-xs bg-brand-100 text-brand-800 font-bold px-3 py-1.5 rounded-full inline-flex items-center gap-1.5">
+            <i class="fa-solid fa-user-check"></i> <span data-i18n="verified_user">Подтвержденный пользователь</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Dashboard Sub-Tabs -->
+      <div class="flex border-b border-slate-200">
+        <button onclick="switchDashTab('my-posts')" id="btn-dash-posts" class="px-5 py-3 font-semibold text-sm text-brand-600 border-b-2 border-brand-600 transition">
+          <span data-i18n="tab_my_posts">Мои объявления</span> (<span id="dash-posts-count">0</span>)
+        </button>
+        <button onclick="switchDashTab('my-messages')" id="btn-dash-msgs" class="px-5 py-3 font-semibold text-sm text-slate-500 border-b-2 border-transparent hover:text-slate-700 transition">
+          <span data-i18n="tab_messages">Сообщения</span> (<span id="dash-msgs-count">0</span>)
+        </button>
+      </div>
+
+      <!-- Dash: My Posts -->
+      <div id="dash-sub-posts" class="space-y-4">
+        <div id="my-posts-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+      </div>
+
+      <!-- Dash: My Messages -->
+      <div id="dash-sub-msgs" class="hidden space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 bg-white rounded-3xl border border-slate-200 overflow-hidden min-h-[420px]">
+          <div class="border-r border-slate-200 p-4 space-y-2 bg-slate-50" id="chat-list"></div>
+          <div class="md:col-span-2 flex flex-col h-full bg-white p-4" id="chat-window">
+            <div class="text-center my-auto text-slate-400 p-6">
+              <i class="fa-regular fa-comments text-4xl mb-3 block"></i>
+              <p class="text-sm" data-i18n="select_chat_prompt">Выберите диалог слева</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. ADMIN MODERATION TAB -->
+    <section id="tab-admin" class="hidden space-y-6">
+      <div class="bg-slate-900 text-white rounded-3xl p-6 shadow-md flex justify-between items-center">
+        <div>
+          <span class="text-[10px] bg-red-500/20 text-red-300 font-extrabold px-2.5 py-1 rounded-md uppercase tracking-wider" data-i18n="admin_panel_tag">Панель управления</span>
+          <h2 class="text-2xl font-bold mt-1" data-i18n="admin_panel_title">Модерация объявлений</h2>
+        </div>
+        <button onclick="logout()" class="bg-slate-800 hover:bg-slate-700 text-xs px-3.5 py-2 rounded-xl border border-slate-700 transition font-medium" data-i18n="btn_exit_admin">
+          Выйти из админки
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-semibold text-slate-400 uppercase" data-i18n="stat_pending">Ожидают проверки</p>
+          <p class="text-3xl font-extrabold text-amber-500 mt-1" id="admin-pending-count">0</p>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-semibold text-slate-400 uppercase" data-i18n="stat_approved">Одобрено</p>
+          <p class="text-3xl font-extrabold text-brand-600 mt-1" id="admin-approved-count">0</p>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-semibold text-slate-400 uppercase" data-i18n="stat_users">Пользователи</p>
+          <p class="text-3xl font-extrabold text-slate-700 mt-1" id="admin-users-count">0</p>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-3xl border border-slate-200 p-6">
+        <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-clock-rotate-left text-amber-500"></i> <span data-i18n="admin_requests_title">Заявки на модерацию</span>
+        </h3>
+        <div id="admin-pending-list" class="space-y-4"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-slate-200 mt-auto py-8 text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div>
+        © 2026 <strong>Bari Sirt (Բարի Սիրտ)</strong> — <span data-i18n="footer_rights">Платформа взаимопомощи</span>
+      </div>
+      <div>
+        <button onclick="promptAdminLogin()" class="text-slate-400 hover:text-slate-600 transition">
+          <i class="fa-solid fa-lock mr-1 text-[10px]"></i> <span data-i18n="admin_login_link">Вход для модератора</span>
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Application JS Logic & Translations -->
+  <script>
+    // I18N DICTIONARY
+    const translations = {
+      ru: {
+        sub_logo: "Բարի Սիրտ • Взаимопомощь",
+        nav_all_requests: "Все просьбы",
+        nav_need_help: "Нужна помощь",
+        hero_tag: "Bari Sirt • Բարի Սիրտ",
+        landing_hero_title: "Платформа прямых добрых дел в Армении",
+        landing_hero_subtitle: "Bari Sirt — это объединение людей, которым нужна помощь, и тех, кто готов её оказать. Войдите или зарегистрируйтесь, чтобы просматривать объявления, связываться напрямую и помогать друг другу.",
+        feat1_title: "Прямая взаимопомощь",
+        feat1_desc: "Публикация запросов на продукты, одежду, медикаменты, жилье или финансовую поддержку напрямую от людей.",
+        feat2_title: "Модерация и Безопасность",
+        feat2_desc: "Каждое объявление проходит обязательную проверку администратором. Контакты и связь доступны только авторизованным людям.",
+        feat3_title: "Все регионы Армении",
+        feat3_desc: "Удобный поиск по Марзам, городам и селам Армении (Ереван, Гюмри, Ванадзор, Горис, Варденис и др.).",
+        cta_heading: "Готовы стать частью сообщества?",
+        cta_sub: "Зарегистрируйтесь за 1 минуту по электронной почте, чтобы просмотреть актуальные просьбы о помощи или подать свою заявку.",
+        search_placeholder: "Поиск по региону, городу или нужде...",
+        opt_all_regions: "Все регионы (Марзы)",
+        opt_all_categories: "Все категории нужд",
+        section_active_requests: "Актуальные просьбы о помощи",
+        empty_title: "Пока нет опубликованных просьб",
+        empty_desc: "На платформе Bari Sirt пока нет проверенных активных объявлений. Вы можете стать первым.",
+        empty_btn: "Подать первое объявление",
+        create_heading: "Создать просьбу о помощи",
+        create_subheading: "Опишите подробно нужду. Объявление поступит на модерацию и появится после проверки.",
+        lbl_title: "Заголовок просьбы *",
+        lbl_category: "Категория *",
+        lbl_region: "Регион (Марз) *",
+        lbl_city: "Город / Село *",
+        lbl_phone: "Контактный телефон *",
+        phone_privacy_note: "Телефон виден только зарегистрированным пользователям.",
+        lbl_description: "Подробное описание нужды *",
+        btn_submit_mod: "Отправить на модерацию",
+        btn_cancel: "Отмена",
+        verified_user: "Подтвержденный пользователь",
+        tab_my_posts: "Мои объявления",
+        tab_messages: "Сообщения",
+        select_chat_prompt: "Выберите диалог слева",
+        admin_panel_tag: "Панель управления",
+        admin_panel_title: "Модерация объявлений",
+        btn_exit_admin: "Выйти из админки",
+        stat_pending: "Ожидают проверки",
+        stat_approved: "Одобрено",
+        stat_users: "Пользователи",
+        admin_requests_title: "Заявки на модерацию",
+        footer_rights: "Платформа взаимопомощи Армении",
+        admin_login_link: "Вход для модератора",
+        cat_food: "Продукты / Еда",
+        cat_meds: "Медикаменты / Лечение",
+        cat_clothes: "Одежда и обувь",
+        cat_housing: "Жилье / Кров",
+        cat_appliances: "Бытовая техника / Мебель",
+        cat_edu: "Образование / Для детей",
+        cat_finance: "Финансовая помощь",
+        cat_work: "Уход / Поиск работы",
+        cat_other: "Другая помощь",
+        login_btn: "Войти",
+        register_btn: "Регистрация",
+        btn_logout: "Выйти",
+        btn_call: "Позвонить",
+        btn_write_msg: "Написать сообщение",
+        lock_phone_notice: "Телефон и связь видны после входа",
+        btn_delete: "Удалить",
+        status_approved: "Опубликовано",
+        status_pending: "На модерации",
+        status_rejected: "Отклонено",
+        btn_approve: "Одобрить и Опубликовать",
+        btn_reject: "Отклонить"
+      },
+      hy: {
+        sub_logo: "Բարի Սիրտ • Փոխօգնություն",
+        nav_all_requests: "Բոլոր խնդրանքները",
+        nav_need_help: "Օգնության կարիք ունեմ",
+        hero_tag: "Bari Sirt • Բարի Սիրտ",
+        landing_hero_title: "Ուղղակի բարի գործերի հարթակ Հայաստանում",
+        landing_hero_subtitle: "Bari Sirt-ը միավորում է օգնության կարիք ունեցողներին և օգնել ցանկացողներին: Մուտք գործեք կամ գրանցվեք հայտարարությունները տեսնելու, ուղղակի կապ հաստատելու համար:",
+        feat1_title: "Ուղղակի փոխօգնություն",
+        feat1_desc: "Սննդի, հագուստի, դեղորայքի, կացարանի կամ ֆինանսական աջակցության հայտերի հրապարակում:",
+        feat2_title: "Ստուգում և Ապահովություն",
+        feat2_desc: "Յուրաքանչյուր հայտարարություն անցնում է ադմինիստրատորի ստուգում: Կոնտակտները հասանելի են միայն գրանցվածներին:",
+        feat3_title: "Հայաստանի բոլոր մարզերը",
+        feat3_desc: "Հարմար որոնում ըստ մարզերի, քաղաքների և գյուղերի (Երևան, Գյումրի, Վանաձոր, Գորիս, Վարդենիս և այլն):",
+        cta_heading: "Պատրա՞ստ եք միանալ համայնքին:",
+        cta_sub: "Գրանցվեք 1 րոպեում էլ. փոստով՝ ակտիվ խնդրանքները տեսնելու կամ ձեր հայտը տեղադրելու համար:",
+        search_placeholder: "Փնտրել ըստ մարզի, քաղաքի կամ կարիքի...",
+        opt_all_regions: "Բոլոր մարզերը",
+        opt_all_categories: "Բոլոր կատեգորիաները",
+        section_active_requests: "Ակտիվ օգնության խնդրանքներ",
+        empty_title: "Դեռևս չկան հաստատված հայտարարություններ",
+        empty_desc: "Bari Sirt հարթակում դեռևս ակտիվ հայտարարություններ չկան: Դուք կարող եք լինել առաջինը:",
+        empty_btn: "Տեղադրել առաջին հայտարարությունը",
+        create_heading: "Ստեղծել օգնության խնդրանք",
+        create_subheading: "Մանրամասն նկարագրեք կարիքը: Հայտարարությունը կստուգվի ադմինիստրատորի կողմից:",
+        lbl_title: "Խնդրանքի վերնագիրը *",
+        lbl_category: "Կատեգորիա *",
+        lbl_region: "Մարզ *",
+        lbl_city: "Քաղաք / Գյուղ *",
+        lbl_phone: "Կոնտակտային հեռախոս *",
+        phone_privacy_note: "Հեռախոսահամարը տեսանելի է միայն գրանցված օգտատերերին:",
+        lbl_description: "Մանրամասն նկարագրություն *",
+        btn_submit_mod: "Ուղարկել ստուգման",
+        btn_cancel: "Չեղարկել",
+        verified_user: "Հաստատված օգտատեր",
+        tab_my_posts: "Իմ հայտարարությունները",
+        tab_messages: "Հաղորդագրություններ",
+        select_chat_prompt: "Ընտրեք զրույցը ձախ կողմից",
+        admin_panel_tag: "Կառավարման վահանակ",
+        admin_panel_title: "Հայտարարությունների ստուգում",
+        btn_exit_admin: "Դուրս գալ ադմինից",
+        stat_pending: "Սպասում են ստուգման",
+        stat_approved: "Հաստատված է",
+        stat_users: "Օգտատերեր",
+        admin_requests_title: "Ստուգման ենթակա հայտերը",
+        footer_rights: "Հայաստանի փոխօգնության հարթակ",
+        admin_login_link: "Մուտք մոդերատորի համար",
+        cat_food: "Սնունդ / Մթերք",
+        cat_meds: "Դեղորայք / Բուժում",
+        cat_clothes: "Հագուստ և կոշիկ",
+        cat_housing: "Կացարան / Տուն",
+        cat_appliances: "Կենցաղային տեխնիկա / Կահույք",
+        cat_edu: "Կրթություն / Երեխաների համար",
+        cat_finance: "Ֆինանսական աջակցություն",
+        cat_work: "Խնամք / Աշխատանք",
+        cat_other: "Այլ օգնություն",
+        login_btn: "Մուտք",
+        register_btn: "Գրանցում",
+        btn_logout: "Դուրս գալ",
+        btn_call: "Զանգահարել",
+        btn_write_msg: "Գրել նամակ",
+        lock_phone_notice: "Կոնտակտները հասանելի են մուտք գործելուց հետո",
+        btn_delete: "Ջնջել",
+        status_approved: "Հաստատված է",
+        status_pending: "Ստուգման փուլում",
+        status_rejected: "Մերժված է",
+        btn_approve: "Հաստատել և Հրապարակել",
+        btn_reject: "Մերժել"
+      },
+      en: {
+        sub_logo: "Bari Sirt • Mutual Aid",
+        nav_all_requests: "All Requests",
+        nav_need_help: "Need Help",
+        hero_tag: "Bari Sirt • Բարի Սիրտ",
+        landing_hero_title: "Direct Mutual Aid Platform in Armenia",
+        landing_hero_subtitle: "Bari Sirt connects people who need help with those willing to give it. Log in or register to view active requests and connect directly.",
+        feat1_title: "Direct Mutual Support",
+        feat1_desc: "Post requests for food, clothing, medicine, shelter, or financial help directly.",
+        feat2_title: "Moderation & Security",
+        feat2_desc: "Every request is verified by an administrator. Contact details are hidden from guests.",
+        feat3_title: "All Regions of Armenia",
+        feat3_desc: "Search by regions, cities, and villages of Armenia (Yerevan, Gyumri, Vanadzor, Goris, Vardenis, etc.).",
+        cta_heading: "Ready to Join the Community?",
+        cta_sub: "Register in 1 minute via email to view active help requests or post your own.",
+        search_placeholder: "Search by region, city, or need...",
+        opt_all_regions: "All Regions (Marzes)",
+        opt_all_categories: "All Categories",
+        section_active_requests: "Active Help Requests",
+        empty_title: "No published requests yet",
+        empty_desc: "There are currently no verified active requests on Bari Sirt. Be the first to create one.",
+        empty_btn: "Post First Request",
+        create_heading: "Create a Request for Help",
+        create_subheading: "Describe your situation in detail. Your post will be sent to moderation.",
+        lbl_title: "Request Title *",
+        lbl_category: "Category *",
+        lbl_region: "Region (Marz) *",
+        lbl_city: "City / Village *",
+        lbl_phone: "Contact Phone *",
+        phone_privacy_note: "Phone numbers are visible to registered users only.",
+        lbl_description: "Detailed Description *",
+        btn_submit_mod: "Submit for Moderation",
+        btn_cancel: "Cancel",
+        verified_user: "Verified User",
+        tab_my_posts: "My Requests",
+        tab_messages: "Messages",
+        select_chat_prompt: "Select a conversation from the left",
+        admin_panel_tag: "Control Panel",
+        admin_panel_title: "Moderation Panel",
+        btn_exit_admin: "Exit Admin",
+        stat_pending: "Pending Moderation",
+        stat_approved: "Approved",
+        stat_users: "Users",
+        admin_requests_title: "Pending Requests",
+        footer_rights: "Armenian Mutual Aid Platform",
+        admin_login_link: "Moderator Login",
+        cat_food: "Food & Supplies",
+        cat_meds: "Medicine & Healthcare",
+        cat_clothes: "Clothing & Shoes",
+        cat_housing: "Housing & Shelter",
+        cat_appliances: "Appliances & Furniture",
+        cat_edu: "Education & Children",
+        cat_finance: "Financial Support",
+        cat_work: "Care & Employment",
+        cat_other: "Other Support",
+        login_btn: "Log In",
+        register_btn: "Register",
+        btn_logout: "Log Out",
+        btn_call: "Call",
+        btn_write_msg: "Send Message",
+        lock_phone_notice: "Contacts are hidden until you log in",
+        btn_delete: "Delete",
+        status_approved: "Approved",
+        status_pending: "In Moderation",
+        status_rejected: "Rejected",
+        btn_approve: "Approve & Publish",
+        btn_reject: "Reject"
+      }
+    };
+
+    // Storage Keys
+    const STORAGE_KEY_POSTS = 'barisirt_posts_clean_v3';
+    const STORAGE_KEY_USERS = 'barisirt_users_clean_v3';
+    const STORAGE_KEY_MSGS  = 'barisirt_msgs_clean_v3';
+    const STORAGE_KEY_AUTH  = 'barisirt_auth_clean_v3';
+    const STORAGE_KEY_LANG  = 'barisirt_lang_v3';
+
+    // Application State - CLEAN BASE (0 Posts)
+    let currentLang = localStorage.getItem(STORAGE_KEY_LANG) || 'hy';
+    let posts = JSON.parse(localStorage.getItem(STORAGE_KEY_POSTS)) || [];
+    let users = JSON.parse(localStorage.getItem(STORAGE_KEY_USERS)) || [];
+    let messages = JSON.parse(localStorage.getItem(STORAGE_KEY_MSGS)) || [];
+    let currentUser = JSON.parse(localStorage.getItem(STORAGE_KEY_AUTH)) || null;
+
+    let pendingRegUser = null;
+    let currentAuthCode = null;
+    let activeChatPartnerId = null;
+
+    // Admin Credentials
+    const ADMIN_CREDS = {
+      login: 'Admin',
+      email: 'vardanmargaryan077092913@gmail.com',
+      defaultPass: 'Vardan_M094092914'
+    };
+
+    function t(key) {
+      return translations[currentLang]?.[key] || translations['ru']?.[key] || key;
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY_POSTS, JSON.stringify(posts));
+      localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
+      localStorage.setItem(STORAGE_KEY_MSGS, JSON.stringify(messages));
+      localStorage.setItem(STORAGE_KEY_AUTH, JSON.stringify(currentUser));
+      localStorage.setItem(STORAGE_KEY_LANG, currentLang);
+    }
+
+    function changeLanguage(lang) {
+      currentLang = lang;
+      saveState();
+      applyI18n();
+      renderHeaderAuth();
+      if (currentUser) renderListings();
+    }
+
+    function applyI18n() {
+      ['ru', 'hy', 'en'].forEach(l => {
+        const btn = document.getElementById(`lang-${l}`);
+        if (btn) {
+          btn.className = l === currentLang
+            ? "px-2.5 py-1 rounded-lg bg-brand-600 text-white shadow-sm transition font-extrabold"
+            : "px-2.5 py-1 rounded-lg text-slate-600 hover:bg-slate-200 transition font-bold";
+        }
+      });
+
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[currentLang]?.[key]) {
+          el.innerText = translations[currentLang][key];
+        }
+      });
+
+      const searchInput = document.getElementById('search-input');
+      if (searchInput) searchInput.placeholder = t('search_placeholder');
+
+      document.getElementById('sub-logo-text').innerText = t('sub_logo');
+    }
+
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const colors = {
+        success: 'bg-emerald-600 text-white',
+        error: 'bg-red-600 text-white',
+        info: 'bg-slate-800 text-white',
+        warning: 'bg-amber-500 text-white'
+      };
+      toast.className = `${colors[type] || colors.info} pointer-events-auto px-4 py-3 rounded-xl shadow-xl text-sm flex items-center justify-between transition-all transform duration-300 translate-y-2`;
+      toast.innerHTML = `
+        <div class="flex items-center gap-2">
+          <i class="fa-solid ${type === 'success' ? 'fa-check-circle' : 'fa-circle-info'}"></i>
+          <span>${msg}</span>
+        </div>
+        <button onclick="this.parentElement.remove()" class="ml-4 opacity-70 hover:opacity-100">&times;</button>
+      `;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    function openModal(html) {
+      document.getElementById('modal-box').innerHTML = html;
+      document.getElementById('modal-overlay').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('modal-overlay').classList.add('hidden');
+    }
+
+    function goHome() {
+      if (currentUser) {
+        if (currentUser.isAdmin) showTab('admin');
+        else showTab('feed');
+      } else {
+        showTab('landing');
+      }
+    }
+
+    function showTab(tabId) {
+      ['landing', 'feed', 'create', 'dashboard', 'admin'].forEach(tId => {
+        const el = document.getElementById(`tab-${tId}`);
+        if (el) el.classList.add('hidden');
+      });
+
+      const activeEl = document.getElementById(`tab-${tabId}`);
+      if (activeEl) activeEl.classList.remove('hidden');
+
+      if (tabId === 'feed') renderListings();
+      if (tabId === 'dashboard') renderDashboard();
+      if (tabId === 'admin') renderAdminPanel();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderHeaderAuth() {
+      const container = document.getElementById('auth-header-section');
+      const navLinks = document.getElementById('main-nav-links');
+
+      if (currentUser) {
+        if (navLinks) navLinks.classList.remove('hidden');
+
+        if (currentUser.isAdmin) {
+          container.innerHTML = `
+            <button onclick="showTab('admin')" class="bg-red-50 text-red-600 border border-red-200 font-bold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5">
+              <i class="fa-solid fa-user-shield"></i> ${t('admin_panel_tag')}
+            </button>
+            <button onclick="logout()" class="text-xs text-slate-500 hover:text-slate-800 font-medium px-2 py-1">
+              ${t('btn_logout')}
+            </button>
+          `;
+        } else {
+          container.innerHTML = `
+            <button onclick="showTab('dashboard')" class="bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-2 transition">
+              <i class="fa-solid fa-user-circle text-brand-600 text-base"></i>
+              <span class="max-w-[120px] truncate">${currentUser.name}</span>
+            </button>
+            <button onclick="logout()" class="text-xs text-slate-500 hover:text-slate-800 font-medium px-2">
+              ${t('btn_logout')}
+            </button>
+          `;
+        }
+      } else {
+        if (navLinks) navLinks.classList.add('hidden');
+
+        container.innerHTML = `
+          <button onclick="openLoginModal()" class="text-xs text-slate-700 hover:text-brand-600 font-bold px-3 py-2">
+            ${t('login_btn')}
+          </button>
+          <button onclick="openRegisterModal()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow-sm transition">
+            ${t('register_btn')}
+          </button>
+        `;
+      }
+    }
+
+    function logout() {
+      currentUser = null;
+      saveState();
+      renderHeaderAuth();
+      showTab('landing');
+      showToast(t('btn_logout'));
+    }
+
+    // LOGIN
+    function openLoginModal() {
+      openModal(`
+        <div class="space-y-4">
+          <div class="flex justify-between items-center border-b pb-3">
+            <h3 class="text-lg font-bold text-slate-800">${t('login_btn')}</h3>
+            <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600">&times;</button>
+          </div>
+          <form onsubmit="handleLoginSubmit(event)" class="space-y-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Email / Login</label>
+              <input type="text" id="login-email" required class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Password</label>
+              <input type="password" id="login-pass" required class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+            </div>
+            <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-2.5 rounded-xl transition shadow mt-2 text-sm">
+              ${t('login_btn')}
+            </button>
+          </form>
+          <p class="text-xs text-center text-slate-500 pt-2">
+            <a href="#" onclick="openRegisterModal(); return false;" class="text-brand-600 font-bold underline">${t('register_btn')}</a>
+          </p>
+        </div>
+      `);
+    }
+
+    function handleLoginSubmit(e) {
+      e.preventDefault();
+      const loginVal = document.getElementById('login-email').value.trim();
+      const passVal = document.getElementById('login-pass').value.trim();
+
+      // Check Admin Creds
+      if ((loginVal === ADMIN_CREDS.login || loginVal.toLowerCase() === ADMIN_CREDS.email.toLowerCase()) && passVal === ADMIN_CREDS.defaultPass) {
+        currentUser = { id: 'admin-001', name: 'Admin', email: ADMIN_CREDS.email, isAdmin: true };
+        saveState();
+        renderHeaderAuth();
+        closeModal();
+        showToast(t('admin_panel_title'), 'success');
+        showTab('admin');
+        return;
+      }
+
+      // Check Normal User
+      const foundUser = users.find(u => (u.email.toLowerCase() === loginVal.toLowerCase() || u.name === loginVal) && u.password === passVal);
+
+      if (foundUser) {
+        currentUser = foundUser;
+        saveState();
+        renderHeaderAuth();
+        closeModal();
+        showToast(`${foundUser.name}`, 'success');
+        showTab('feed');
+      } else {
+        showToast('Error Log In', 'error');
+      }
+    }
+
+    // REGISTER WITH EMAIL VERIFICATION CODE
+    function openRegisterModal() {
+      openModal(`
+        <div class="space-y-4">
+          <div class="flex justify-between items-center border-b pb-3">
+            <h3 class="text-lg font-bold text-slate-800">${t('register_btn')}</h3>
+            <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600">&times;</button>
+          </div>
+          <form onsubmit="handleStartRegister(event)" class="space-y-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Name / Имя / Անուն *</label>
+              <input type="text" id="reg-name" required placeholder="John Doe" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Email *</label>
+              <input type="email" id="reg-email" required placeholder="name@example.com" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Phone *</label>
+              <input type="tel" id="reg-phone" required placeholder="+374 XX XXXXXX" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Password *</label>
+              <input type="password" id="reg-pass" required minlength="4" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+            </div>
+            <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-2.5 rounded-xl transition shadow mt-2 text-sm">
+              ${t('btn_submit_mod')}
+            </button>
+          </form>
+        </div>
+      `);
+    }
+
+    function handleStartRegister(e) {
+      e.preventDefault();
+      const name = document.getElementById('reg-name').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const phone = document.getElementById('reg-phone').value.trim();
+      const password = document.getElementById('reg-pass').value.trim();
+
+      if (users.some(u => u.email.toLowerCase() === email.toLowerCase())) {
+        showToast('Email exists', 'error');
+        return;
+      }
+
+      currentAuthCode = Math.floor(100000 + Math.random() * 900000).toString();
+      pendingRegUser = { id: 'user-' + Date.now(), name, email, phone, password };
+
+      openModal(`
+        <div class="space-y-4 text-center">
+          <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-xl">
+            <i class="fa-solid fa-envelope-open-text"></i>
+          </div>
+          <h3 class="text-lg font-bold text-slate-800">Email Verification Code</h3>
+          <p class="text-xs text-slate-600">6-digit code sent to <strong>${email}</strong>.</p>
+          <div class="bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-2xl text-xs text-left">
+            Simulation Code: <span class="font-mono font-extrabold text-sm underline">${currentAuthCode}</span>
+          </div>
+          <form onsubmit="handleVerifyCode(event)" class="space-y-3 pt-2">
+            <div>
+              <input type="text" id="verify-code" required maxlength="6" placeholder="6 digits" class="w-full text-center text-2xl tracking-widest font-mono py-2 bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500">
+            </div>
+            <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-2.5 rounded-xl transition shadow text-sm">
+              Verify & Complete
+            </button>
+          </form>
+        </div>
+      `);
+    }
+
+    function handleVerifyCode(e) {
+      e.preventDefault();
+      const inputCode = document.getElementById('verify-code').value.trim();
+
+      if (inputCode === currentAuthCode && pendingRegUser) {
+        users.push(pendingRegUser);
+        currentUser = pendingRegUser;
+        pendingRegUser = null;
+        currentAuthCode = null;
+        saveState();
+        renderHeaderAuth();
+        closeModal();
+        showToast(t('verified_user'), 'success');
+        showTab('feed');
+      } else {
+        showToast('Invalid verification code', 'error');
+      }
+    }
+
+    // LISTINGS & FILTERS
+    function renderListings() {
+      const grid = document.getElementById('listings-grid');
+      const noListings = document.getElementById('no-listings');
+      const searchVal = (document.getElementById('search-input')?.value || '').toLowerCase();
+      const regionVal = document.getElementById('filter-region')?.value || '';
+      const catVal = document.getElementById('filter-category')?.value || '';
+
+      const approvedPosts = posts.filter(p => p.status === 'approved');
+
+      const filtered = approvedPosts.filter(p => {
+        const matchesSearch = p.title.toLowerCase().includes(searchVal) || p.description.toLowerCase().includes(searchVal) || p.city.toLowerCase().includes(searchVal);
+        const matchesRegion = !regionVal || p.region === regionVal;
+        const matchesCat = !catVal || p.category === catVal;
+        return matchesSearch && matchesRegion && matchesCat;
+      });
+
+      document.getElementById('posts-count').innerText = `${filtered.length}`;
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '';
+        noListings.classList.remove('hidden');
+        return;
+      }
+
+      noListings.classList.add('hidden');
+      grid.innerHTML = filtered.map(p => `
+        <div class="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-[10px] font-bold uppercase tracking-wider bg-brand-50 text-brand-700 px-2.5 py-1 rounded-lg">
+                ${p.category}
+              </span>
+              <span class="text-xs text-slate-500 font-semibold">
+                <i class="fa-solid fa-location-dot text-red-500 mr-1"></i>${p.region}, ${p.city}
+              </span>
+            </div>
+            <h3 class="font-bold text-slate-800 text-base mb-2 leading-snug">${p.title}</h3>
+            <p class="text-xs text-slate-600 line-clamp-4 leading-relaxed mb-4">${p.description}</p>
+          </div>
+
+          <div class="pt-4 border-t border-slate-100 space-y-3">
+            <div class="flex items-center justify-between text-xs text-slate-400">
+              <span><i class="fa-regular fa-user mr-1"></i>${p.userName}</span>
+              <span>${p.createdAt}</span>
+            </div>
+
+            <div class="bg-slate-50 rounded-2xl p-3 border border-slate-200 text-xs space-y-2">
+              <div class="flex items-center justify-between text-slate-800 font-bold">
+                <span><i class="fa-solid fa-phone text-brand-600 mr-1"></i> ${p.phone}</span>
+                <a href="tel:${p.phone}" class="bg-brand-100 hover:bg-brand-200 text-brand-800 px-2.5 py-1 rounded-lg text-[11px] font-bold transition">${t('btn_call')}</a>
+              </div>
+              ${currentUser && currentUser.id !== p.userId ? `
+                <button onclick="openChatWith('${p.userId}', '${p.userName}')" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold py-1.5 rounded-xl transition text-xs flex items-center justify-center gap-1.5">
+                  <i class="fa-regular fa-paper-plane"></i> ${t('btn_write_msg')}
+                </button>
+              ` : ``}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function applyFilters() {
+      renderListings();
+    }
+
+    // CREATE POST
+    function handleCreatePost(e) {
+      e.preventDefault();
+      if (!currentUser) return;
+
+      const title = document.getElementById('post-title').value.trim();
+      const category = document.getElementById('post-category').value;
+      const region = document.getElementById('post-region').value;
+      const city = document.getElementById('post-city').value.trim();
+      const phone = document.getElementById('post-phone').value.trim();
+      const description = document.getElementById('post-description').value.trim();
+
+      const newPost = {
+        id: 'post-' + Date.now(),
+        userId: currentUser.id,
+        userName: currentUser.name,
+        phone: phone,
+        title: title,
+        category: category,
+        region: region,
+        city: city,
+        description: description,
+        status: 'pending',
+        createdAt: new Date().toISOString().split('T')[0]
+      };
+
+      posts.unshift(newPost);
+      saveState();
+      document.getElementById('create-post-form').reset();
+      showToast(t('btn_submit_mod'), 'success');
+      showTab('dashboard');
+    }
+
+    // USER DASHBOARD
+    function renderDashboard() {
+      if (!currentUser) {
+        showTab('landing');
+        return;
+      }
+
+      document.getElementById('dash-user-name').innerText = currentUser.name;
+      document.getElementById('dash-user-email').innerText = currentUser.email;
+
+      const myPosts = posts.filter(p => p.userId === currentUser.id);
+      document.getElementById('dash-posts-count').innerText = myPosts.length;
+
+      const myPostsContainer = document.getElementById('my-posts-list');
+      if (myPosts.length === 0) {
+        myPostsContainer.innerHTML = `
+          <div class="col-span-2 text-center py-10 bg-white rounded-2xl border border-dashed border-slate-200">
+            <p class="text-sm text-slate-500 font-medium mb-3">${t('empty_title')}</p>
+            <button onclick="showTab('create')" class="bg-brand-600 text-white text-xs font-bold px-4 py-2 rounded-xl">${t('nav_need_help')}</button>
+          </div>
+        `;
+      } else {
+        myPostsContainer.innerHTML = myPosts.map(p => `
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3">
+            <div class="flex justify-between items-start">
+              <span class="text-xs font-bold px-2.5 py-1 rounded-lg ${p.status === 'approved' ? 'bg-emerald-100 text-emerald-800' : p.status === 'pending' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'}">
+                ${p.status === 'approved' ? t('status_approved') : p.status === 'pending' ? t('status_pending') : t('status_rejected')}
+              </span>
+              <button onclick="deleteMyPost('${p.id}')" class="text-red-600 hover:text-red-700 text-xs font-bold px-3 py-1.5 bg-red-50 hover:bg-red-100 rounded-xl transition">
+                <i class="fa-solid fa-trash-can mr-1"></i> ${t('btn_delete')}
+              </button>
+            </div>
+            <h4 class="font-bold text-slate-800 text-sm">${p.title}</h4>
+            <p class="text-xs text-slate-500 line-clamp-2">${p.description}</p>
+            <div class="text-[11px] text-slate-400 font-medium">${p.category} • ${p.region}, ${p.city}</div>
+          </div>
+        `).join('');
+      }
+
+      renderMessagesTab();
+    }
+
+    function switchDashTab(sub) {
+      const btnPosts = document.getElementById('btn-dash-posts');
+      const btnMsgs = document.getElementById('btn-dash-msgs');
+      const subPosts = document.getElementById('dash-sub-posts');
+      const subMsgs = document.getElementById('dash-sub-msgs');
+
+      if (sub === 'my-posts') {
+        btnPosts.className = "px-5 py-3 font-semibold text-sm text-brand-600 border-b-2 border-brand-600 transition";
+        btnMsgs.className = "px-5 py-3 font-semibold text-sm text-slate-500 border-b-2 border-transparent hover:text-slate-700 transition";
+        subPosts.classList.remove('hidden');
+        subMsgs.classList.add('hidden');
+      } else {
+        btnMsgs.className = "px-5 py-3 font-semibold text-sm text-brand-600 border-b-2 border-brand-600 transition";
+        btnPosts.className = "px-5 py-3 font-semibold text-sm text-slate-500 border-b-2 border-transparent hover:text-slate-700 transition";
+        subMsgs.classList.remove('hidden');
+        subPosts.classList.add('hidden');
+      }
+    }
+
+    function deleteMyPost(postId) {
+      if (confirm('Delete this request? / Ջնջե՞լ այս հայտարարությունը:')) {
+        posts = posts.filter(p => p.id !== postId);
+        saveState();
+        showToast(t('btn_delete'), 'info');
+        renderDashboard();
+        renderListings();
+      }
+    }
+
+    // MESSAGING
+    function openChatWith(partnerId, partnerName) {
+      if (!currentUser) return;
+      activeChatPartnerId = partnerId;
+      showTab('dashboard');
+      switchDashTab('my-messages');
+      renderChatWindow(partnerId, partnerName);
+    }
+
+    function renderMessagesTab() {
+      if (!currentUser) return;
+      const chatList = document.getElementById('chat-list');
+      const userDialogs = {};
+
+      messages.forEach(m => {
+        if (m.senderId === currentUser.id) userDialogs[m.receiverId] = m.receiverName;
+        else if (m.receiverId === currentUser.id) userDialogs[m.senderId] = m.senderName;
+      });
+
+      const partnerIds = Object.keys(userDialogs);
+      document.getElementById('dash-msgs-count').innerText = partnerIds.length;
+
+      if (partnerIds.length === 0) {
+        chatList.innerHTML = `<p class="text-xs text-slate-400 p-4 text-center">${t('select_chat_prompt')}</p>`;
+        return;
+      }
+
+      chatList.innerHTML = partnerIds.map(pid => `
+        <button onclick="renderChatWindow('${pid}', '${userDialogs[pid]}')" class="w-full text-left p-3 rounded-2xl transition ${activeChatPartnerId === pid ? 'bg-brand-50 border border-brand-200' : 'hover:bg-slate-100'}">
+          <p class="font-bold text-xs text-slate-800">${userDialogs[pid]}</p>
+        </button>
+      `).join('');
+    }
+
+    function renderChatWindow(partnerId, partnerName) {
+      activeChatPartnerId = partnerId;
+      const win = document.getElementById('chat-window');
+
+      const conversation = messages.filter(m => 
+        (m.senderId === currentUser.id && m.receiverId === partnerId) ||
+        (m.senderId === partnerId && m.receiverId === currentUser.id)
+      );
+
+      win.innerHTML = `
+        <div class="border-b pb-3 mb-3 flex justify-between items-center">
+          <h4 class="font-bold text-sm text-slate-800"><i class="fa-solid fa-comments text-brand-600 mr-2"></i> ${partnerName}</h4>
+        </div>
+        <div class="flex-grow overflow-y-auto space-y-3 p-2 text-xs custom-scrollbar max-h-[300px]" id="chat-messages-scroll">
+          ${conversation.length === 0 ? `<p class="text-center text-slate-400 text-xs my-auto">${t('btn_write_msg')}</p>` : ''}
+          ${conversation.map(m => `
+            <div class="flex flex-col ${m.senderId === currentUser.id ? 'items-end' : 'items-start'}">
+              <div class="max-w-[75%] px-3.5 py-2.5 rounded-2xl ${m.senderId === currentUser.id ? 'bg-brand-600 text-white rounded-br-none' : 'bg-slate-100 text-slate-800 rounded-bl-none'}">
+                ${m.text}
+              </div>
+              <span class="text-[9px] text-slate-400 mt-0.5 px-1">${m.time}</span>
+            </div>
+          `).join('')}
+        </div>
+        <form onsubmit="sendChatMessage(event, '${partnerId}', '${partnerName}')" class="mt-3 flex gap-2">
+          <input type="text" id="chat-input" required placeholder="..." class="flex-grow px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+          <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-xs font-bold">
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
+        </form>
+      `;
+
+      const scrollArea = document.getElementById('chat-messages-scroll');
+      if (scrollArea) scrollArea.scrollTop = scrollArea.scrollHeight;
+      renderMessagesTab();
+    }
+
+    function sendChatMessage(e, partnerId, partnerName) {
+      e.preventDefault();
+      const input = document.getElementById('chat-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      messages.push({
+        id: 'msg-' + Date.now(),
+        senderId: currentUser.id,
+        senderName: currentUser.name,
+        receiverId: partnerId,
+        receiverName: partnerName,
+        text: text,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      });
+
+      saveState();
+      renderChatWindow(partnerId, partnerName);
+    }
+
+    // ADMIN MODERATION
+    function promptAdminLogin() {
+      openModal(`
+        <div class="space-y-4">
+          <div class="flex justify-between items-center border-b pb-3">
+            <h3 class="text-lg font-bold text-slate-800"><i class="fa-solid fa-user-shield text-red-600 mr-2"></i> ${t('admin_login_link')}</h3>
+            <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600">&times;</button>
+          </div>
+          <form onsubmit="handleAdminLogin(event)" class="space-y-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Admin Login / Email</label>
+              <input type="text" id="admin-login-val" required class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Password</label>
+              <input type="password" id="admin-pass-val" required class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
+            </div>
+            <button type="submit" class="w-full bg-slate-900 hover:bg-black text-white font-bold py-2.5 rounded-xl transition shadow mt-2 text-sm">
+              ${t('login_btn')}
+            </button>
+          </form>
+        </div>
+      `);
+    }
+
+    function handleAdminLogin(e) {
+      e.preventDefault();
+      const log = document.getElementById('admin-login-val').value.trim();
+      const pass = document.getElementById('admin-pass-val').value.trim();
+
+      if ((log === ADMIN_CREDS.login || log.toLowerCase() === ADMIN_CREDS.email.toLowerCase()) && pass === ADMIN_CREDS.defaultPass) {
+        currentUser = { id: 'admin-001', name: 'Admin', email: ADMIN_CREDS.email, isAdmin: true };
+        saveState();
+        renderHeaderAuth();
+        closeModal();
+        showToast(t('admin_panel_title'), 'success');
+        showTab('admin');
+      } else {
+        showToast('Invalid Admin Credentials', 'error');
+      }
+    }
+
+    function renderAdminPanel() {
+      if (!currentUser || !currentUser.isAdmin) {
+        showTab('landing');
+        return;
+      }
+
+      const pending = posts.filter(p => p.status === 'pending');
+      const approved = posts.filter(p => p.status === 'approved');
+
+      document.getElementById('admin-pending-count').innerText = pending.length;
+      document.getElementById('admin-approved-count').innerText = approved.length;
+      document.getElementById('admin-users-count').innerText = users.length;
+
+      const container = document.getElementById('admin-pending-list');
+
+      if (pending.length === 0) {
+        container.innerHTML = `<p class="text-sm text-slate-400 py-8 text-center">${t('empty_title')}</p>`;
+        return;
+      }
+
+      container.innerHTML = pending.map(p => `
+        <div class="border border-slate-200 rounded-2xl p-5 bg-slate-50 space-y-3">
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="text-[10px] bg-amber-200 text-amber-900 font-bold px-2.5 py-1 rounded-md uppercase">${t('status_pending')}</span>
+              <h4 class="font-bold text-slate-800 text-base mt-2">${p.title}</h4>
+            </div>
+            <span class="text-xs text-slate-400">${p.createdAt}</span>
+          </div>
+
+          <p class="text-xs text-slate-700 bg-white p-3.5 rounded-xl border border-slate-200 leading-relaxed">${p.description}</p>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs text-slate-600">
+            <div><strong>User:</strong> ${p.userName}</div>
+            <div><strong>Tel:</strong> ${p.phone}</div>
+            <div><strong>Category:</strong> ${p.category}</div>
+            <div><strong>Region:</strong> ${p.region}, ${p.city}</div>
+          </div>
+
+          <div class="flex gap-3 pt-2 border-t border-slate-200">
+            <button onclick="adminApprovePost('${p.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition">
+              <i class="fa-solid fa-check mr-1"></i> ${t('btn_approve')}
+            </button>
+            <button onclick="adminRejectPost('${p.id}')" class="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition">
+              <i class="fa-solid fa-xmark mr-1"></i> ${t('btn_reject')}
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function adminApprovePost(id) {
+      const p = posts.find(item => item.id === id);
+      if (p) {
+        p.status = 'approved';
+        saveState();
+        showToast(t('status_approved'), 'success');
+        renderAdminPanel();
+      }
+    }
+
+    function adminRejectPost(id) {
+      const p = posts.find(item => item.id === id);
+      if (p) {
+        p.status = 'rejected';
+        saveState();
+        showToast(t('status_rejected'), 'info');
+        renderAdminPanel();
+      }
+    }
+
+    // INITIALIZATION
+    window.onload = function() {
+      applyI18n();
+      renderHeaderAuth();
+      if (currentUser) {
+        if (currentUser.isAdmin) showTab('admin');
+        else showTab('feed');
+      } else {
+        showTab('landing');
+      }
+    };
+  </script>
+</body>
+</html>
